@@ -22,15 +22,6 @@ module.exports = function(context) {
       androidManifest.is_changed = true;
    }
 
-   //
-   // Remove the <meta-data android:name="com.parse.push.gcm_sender_id" />
-   // We changed it via after_prepare hook so cordova doesn't know to remove it automatically
-   //
-   var manifestGcmIdNodes = androidManifest.data.findall('application/meta-data[@android:name="com.parse.push.gcm_sender_id"]');
-   manifestGcmIdNodes.forEach(function(node){
-      applicationNode.remove(node);
-      androidManifest.is_changed = true;
-   })
 
    if(androidManifest.is_changed){
       androidManifest.save();

@@ -34,6 +34,7 @@ public class ParsePushApplication extends Application {
   public void onCreate() {
     super.onCreate();
 
+
     try {
       // Other ways to call ParsePushReaderConfig:
       //
@@ -57,32 +58,45 @@ public class ParsePushApplication extends Application {
       //
       // Support parse.com and opensource parse-server
       // 1st null to detect R.xml.config
+
+      // Remove for production, use to verify FCM is working
+      // Look for ParseFCM: FCM registration success messages in Logcat to confirm.
+      // Parse.setLogLevel(Parse.LOG_LEVEL_DEBUG); //dev only
+
+      // guide: http://docs.parseplatform.org/parse-server/guide/#android-apps
+
+      // Migration from GCM to FCM
+      // https://github.com/parse-community/Parse-SDK-Android/blob/ba106dd4298a1bea80e349e8db3470af2469dd56/README.md#migrating-to-firebase
+      // https://developers.google.com/cloud-messaging/android/android-migrate-fcm
+
       ParsePushConfigReader config = new ParsePushConfigReader(getApplicationContext(), null,
-          new String[] { "ParseClientKey" });
-      if (config.getServerUrl().equalsIgnoreCase("PARSE_DOT_COM")) {
-        //
-        //initialize for use with legacy parse.com
-        Parse.initialize(this, config.getAppId(), config.getClientKey());
-      } else {
-        Log.d(LOGTAG, "ServerUrl " + config.getServerUrl());
-        Log.d(LOGTAG, "NOTE: The trailing slash is important, e.g., https://mydomain.com:1337/parse/");
-        Log.d(LOGTAG, "NOTE: Set the clientKey if your server requires it, otherwise it can be null");
-        //
-        // initialize for use with opensource parse-server
-        Parse.initialize(new Parse.Configuration.Builder(this).applicationId(config.getAppId())
-            .server(config.getServerUrl()).clientKey(config.getClientKey()).build());
-      }
+        new String[] { "ParseClientKey" });
+
+      Log.d(LOGTAG, "ServerUrl " + config.getServerUrl());
+      Log.d(LOGTAG, "NOTE: The trailing slash is important, e.g., https://mydomain.com:1337/parse/");
+      Log.d(LOGTAG, "NOTE: Set the clientKey if your server requires it, otherwise it can be null");
+      
+      // initialize for use with opensource parse-server
+      Parse.initialize(new Parse.Configuration.Builder(ParsePushApplication.this).applicationId(config.getAppId())
+        .server(config.getServerUrl()).clientKey(config.getClientKey()).build());
+
+      ParseInstallation installation = ParseInstallation.getCurrentInstallation();
+
+      // option to manually set deviceToken and pushType (mainly for debugging purposes)
+      // installation.setDeviceToken(newToken);
+      // installation.setPushType("fcm");
 
       Log.d(LOGTAG, "Saving Installation in background");
       //
       // save installation. Parse.Push will need this to push to the correct device
-      ParseInstallation.getCurrentInstallation().saveInBackground(new SaveCallback() {
+      installation.saveInBackground(new SaveCallback() {
         @Override
         public void done(ParseException ex) {
-          if (null != ex) {
+          if (ex != null) {
             Log.e(LOGTAG, ex.toString());
           } else {
             Log.d(LOGTAG, "Installation saved");
+            Log.d(LOGTAG, String.valueOf(ParseInstallation.getCurrentInstallation().get("deviceToken"))); //prints device token for debugging purposes
           }
         }
       });

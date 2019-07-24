@@ -1,7 +1,62 @@
 repositories {
     mavenCentral()
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
-    compile 'me.leolin:ShortcutBadger:1.1.17@aar'
+    implementation 'me.leolin:ShortcutBadger:1.1.17@aar'
+    
+    implementation 'com.github.parse-community.Parse-SDK-Android:parse:1.20.0'
+    implementation 'com.github.parse-community.Parse-SDK-Android:fcm:1.20.0'
+    
+    implementation 'com.google.firebase:firebase-core:17.0.0'
+    implementation 'com.google.firebase:firebase-messaging:19.0.1'
+
+    // implementation 'com.google.firebase:firebase-core:+'
+    // implementation 'com.google.firebase:firebase-messaging:+'
+}
+
+/* 
+
+Google Services require config files (generated from Firebase Console)
+
+<platform name="android">
+    <resource-file src="google-services.json" target="app/google-services.json" />
+    ...
+</platform>
+<platform name="ios">
+    <resource-file src="GoogleService-Info.plist" />
+    ...
+</platform>
+
+Note: if you use cordova-android below version 7 specify target="google-services.json" instead. 
+*/
+
+
+//ref: https://github.com/chemerisuk/cordova-support-google-services/blob/master/build.gradle
+
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:+'
+        classpath 'com.google.gms:google-services:4.2.0' //https://stackoverflow.com/a/56366135/3553367 use 4.1.0 instead
+    }
+}
+
+// use postBuildExtras to make sure the plugin is applied after
+// cdvPluginPostBuildExtras. Therefore if googleServices is added
+// to cdvPluginPostBuildExtras somewhere else, the plugin execution
+// will be skipped and project build will be successfull
+ext.postBuildExtras = {
+    if (project.extensions.findByName('googleServices') == null) {
+        // apply plugin: 'com.google.gms.google-services'
+        // class must be used instead of id(string) to be able to apply plugin from non-root gradle file
+        apply plugin: com.google.gms.googleservices.GoogleServicesPlugin
+        // com.google.gms.googleservices.GoogleServicesPlugin.config.disableVersionCheck = true //ref: https://github.com/OneSignal/OneSignal-Gradle-Plugin/issues/37#issuecomment-391983620
+    }
 }

@@ -14,8 +14,8 @@ import android.graphics.Color;
 
 import github.taivo.parsepushplugin.ParsePushConfigReader;
 
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.TaskStackBuilder;
 
 import android.net.Uri;
 import android.util.Log;
@@ -71,9 +71,9 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
       }
       else {
         // check if this is a silent notification
-        Notification notification = getNotification(context, intent);
+        NotificationCompat.Builder notificationBuilder = getNotification(context, intent);
 
-        if (notification != null) {
+        if (notificationBuilder != null) {
           // use tag + notification id=0 to limit the number of notifications in the tray
           // (older messages with the same tag and notification id will be replaced)
           NotificationManager notifManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -82,9 +82,9 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
              
               String id = context.getPackageName();
               CharSequence name = getAppName(context);
-              String description = getNotification(context, intent).extras.getCharSequence(Notification.EXTRA_TEXT).toString();
+              String description = notificationBuilder.getExtras().getCharSequence(Notification.EXTRA_TEXT).toString();
               
-              int importance = NotificationManager.IMPORTANCE_MAX;
+              int importance = NotificationManager.IMPORTANCE_HIGH;
               NotificationChannel mChannel = new NotificationChannel(id, name, importance);
 
               mChannel.setDescription(description);
@@ -95,7 +95,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
               Intent activityIntent = new Intent(context, getActivity(context, intent));
 
               PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-              NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, id)
+              NotificationCompat.Builder customNotificationBuilder = new NotificationCompat.Builder(context, id)
                     .setSmallIcon(getSmallIconId(context, intent))
                     .setBadgeIconType(getSmallIconId(context, intent))
                     .setChannelId(id)
@@ -107,10 +107,10 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
                     .setContentText(description)
                     .setWhen(System.currentTimeMillis());
 
-              notifManager.notify((int)(System.currentTimeMillis()/1000), notificationBuilder.build());
+              notifManager.notify((int)(System.currentTimeMillis()/1000), customNotificationBuilder.build());
 
           }else{
-              notifManager.notify(getNotificationTag(context, intent), 0, notification);
+              notifManager.notify(getNotificationTag(context, intent), 0, notificationBuilder.build());
           }
 
         }
@@ -139,7 +139,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
 
     activityIntent.putExtras(intent).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_ACTIVITY_NEW_TASK);
 
-    ParseAnalytics.trackAppOpened(intent);
+    ParseAnalytics.trackAppOpenedInBackground(intent);
 
     // allow a urlHash parameter for hash as well as query params.
     // This lets the app know what to do at coldstart by opening a PN.
@@ -159,7 +159,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
   }
 
   @Override
-  protected Notification getNotification(Context context, Intent intent) {
+  protected NotificationCompat.Builder getNotification(Context context, Intent intent) {
     //
     // Build a notification entry for the tray
     //
@@ -254,21 +254,20 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
     }
 
     if (!isSilent) {
-      return builder.build();
+      return builder;
     }
 
     return null;
   }
 
-  private static JSONObject getPushData(Intent intent) {
+  protected JSONObject getPushData(Intent intent) {
     JSONObject pnData = null;
     try {
       pnData = new JSONObject(intent.getStringExtra(KEY_PUSH_DATA));
     } catch (JSONException e) {
       Log.e(LOGTAG, "JSONException while parsing push data:", e);
-    } finally {
-      return pnData;
     }
+    return pnData;
   }
 
   private static String getAppName(Context context) {
@@ -276,7 +275,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
     return (String) appName;
   }
 
-  private static String getNotificationTag(Context context, Intent intent) {
+  protected String getNotificationTag(Context context, Intent intent) {
     return getPushData(intent).optString("title", getAppName(context));
   }
 
@@ -289,9 +288,8 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
       MSG_COUNTS.put(pnTag, MSG_COUNTS.optInt(pnTag, 0) + 1);
     } catch (JSONException e) {
       Log.e(LOGTAG, "JSONException while computing next pn count for tag: [" + pnTag + "]", e);
-    } finally {
-      return MSG_COUNTS.optInt(pnTag, 0);
     }
+    return MSG_COUNTS.optInt(pnTag, 0);
   }
 
   private static void resetCount(String pnTag) {
@@ -309,7 +307,7 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
   /**
   * Sets the badge of the app icon.
   *
-  * @param args
+  * @param badgeCount
   * The new badge number
   * @param ctx
   * The application context
@@ -317,8 +315,8 @@ public class ParsePushPluginReceiver extends ParsePushBroadcastReceiver {
   public static void setBadge(int badgeCount, Context ctx) {
     int badge = badgeCount;
 
-    saveBadge(badge, ctx);
-    ShortcutBadger.applyCount(ctx, badge);
+    saveBadge(badgeCount, ctx);
+    ShortcutBadger.applyCount(ctx, badgeCount);
   }
 
   public static void resetBadge(Context ctx) {
