@@ -71,10 +71,6 @@ public class ParsePushPlugin extends CordovaPlugin {
       this.unsubscribe(args.getString(0), callbackContext);
       return true;
     }
-    if (action.equals(ACTION_RESET_BADGE)) {
-      ParsePushPluginReceiver.resetBadge(this.cordova.getActivity().getApplicationContext());
-      return true;
-    }
     if (action.equals(ACTION_REGISTER_FOR_PN)) {
       this.registerDeviceForPN(callbackContext);
       return true;
