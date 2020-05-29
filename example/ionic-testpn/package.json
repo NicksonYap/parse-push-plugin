@@ -1,7 +1,7 @@
 {
   "name": "testPN",
   "version": "0.0.1",
-  "description": "Test parse-push-plugin",
+  "description": "Test cordova-parse-push-plugin",
   "dependencies": {
     "gulp": "^3.5.6",
     "gulp-sass": "^2.0.4",

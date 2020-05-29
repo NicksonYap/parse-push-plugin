@@ -14,7 +14,7 @@ ionic state restore
 # restore bower dependencies
 bower update
 
-# install the local copy of parse-push-plugin you already have
+# install the local copy of cordova-parse-push-plugin you already have
 ionic plugin add ../../
 
 ```

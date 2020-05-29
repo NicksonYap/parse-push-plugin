@@ -14,7 +14,7 @@
     <preference name="BackupWebStorage" value="none" />
     <preference name="SplashScreen" value="screen" />
 
-    <!-- set parse-push-plugin config here -->
+    <!-- set cordova-parse-push-plugin config here -->
     <preference name="ParseAppId" value="TESTPN" />
     <preference name="ParseServerUrl" value="http://localhost:1337/parse/" />
 
