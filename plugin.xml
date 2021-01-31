@@ -89,7 +89,7 @@
       <framework src="SystemConfiguration.framework" />
       <framework src="libz.tbd" />
       <framework src="libsqlite3.tbd" />
-      <framework src="Parse" type="podspec" spec="~> 1.18.0" />
+      <framework src="Parse" type="podspec" spec="~> 1.19.1" />
    </platform>
 
    <platform name="windows">
